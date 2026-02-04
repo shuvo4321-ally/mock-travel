@@ -1,7 +1,7 @@
 "use client";
 
 import { Flight } from "@/lib/mockData";
-import { ChevronDown, Briefcase, Info } from "lucide-react";
+import { ChevronDown, Briefcase, Info, Clock, MapPin } from "lucide-react";
 import { PriceService } from "@/lib/priceService";
 import { useState, useEffect } from "react";
 
@@ -12,12 +12,18 @@ interface FlightStripProps {
 
 export default function FlightStrip({ flight, onSelect }: FlightStripProps) {
     const [displayPrice, setDisplayPrice] = useState(flight.price);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         // Hydration safe price fetch
         const p = PriceService.getPrice(flight.id, flight.price);
         setDisplayPrice(p);
     }, [flight.id, flight.price]);
+
+    const toggleDetails = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsExpanded(!isExpanded);
+    };
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-200 mb-3 group">
@@ -81,13 +87,73 @@ export default function FlightStrip({ flight, onSelect }: FlightStripProps) {
             </div>
 
             {/* Footer / Expand */}
-            <div className="bg-gray-50 border-t border-gray-100 px-4 py-2 flex justify-between items-center text-xs text-gray-500 rounded-b-lg">
+            <div
+                className="bg-gray-50 border-t border-gray-100 px-4 py-2 flex justify-between items-center text-xs text-gray-500 rounded-b-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={toggleDetails}
+            >
                 <div className="flex gap-4">
                     <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> Included: 23kg Bag</span>
-                    <span className="flex items-center gap-1 hover:text-primary cursor-pointer underline decoration-dotted"><Info className="w-3 h-3" /> Flight Details</span>
+                    <span className="flex items-center gap-1 text-primary underline decoration-dotted"><Info className="w-3 h-3" /> Flight Details</span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-gray-400 cursor-pointer" />
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
             </div>
+
+            {/* Expanded Details - Timeline */}
+            {isExpanded && (
+                <div className="border-t border-gray-100 p-4 bg-gray-50 animate-in slide-in-from-top-2 duration-200">
+                    <div className="space-y-6">
+
+                        {/* Segment 1 */}
+                        <div className="relative pl-6 border-l-2 border-gray-200 ml-2 space-y-6">
+                            {/* Departure */}
+                            <div className="relative">
+                                <span className="absolute -left-[31px] bg-white border-2 border-gray-300 w-4 h-4 rounded-full"></span>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-lg font-bold text-gray-900">{flight.departure.time}</p>
+                                        <p className="text-sm text-gray-600">{flight.departure.city} ({flight.departure.code})</p>
+                                        <p className="text-xs text-gray-400 mt-1">Terminal 5</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs font-medium text-gray-900">{flight.airline}</p>
+                                        <p className="text-xs text-gray-500">{flight.flightNumber} • Boeing 777</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Duration / Flight Info */}
+                            <div className="py-2">
+                                <div className="flex items-center gap-2 text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 w-fit">
+                                    <Clock className="w-3 h-3" />
+                                    <span>Duration: {flight.duration}</span>
+                                </div>
+                            </div>
+
+                            {/* Stopover (if any) or Arrival */}
+                            {flight.stops > 0 && (
+                                <div className="relative pb-6">
+                                    <span className="absolute -left-[31px] top-1 bg-yellow-100 border-2 border-yellow-400 w-4 h-4 rounded-full"></span>
+                                    <div className="bg-yellow-50 border border-yellow-100 rounded p-3 text-xs text-yellow-800 mb-4">
+                                        <p className="font-bold mb-1">Layover in Munich (MUC)</p>
+                                        <p>2h 15m Change of planes</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Arrival */}
+                            <div className="relative">
+                                <span className="absolute -left-[31px] bg-gray-900 border-2 border-gray-900 w-4 h-4 rounded-full"></span>
+                                <div>
+                                    <p className="text-lg font-bold text-gray-900">{flight.arrival.time}</p>
+                                    <p className="text-sm text-gray-600">{flight.arrival.city} ({flight.arrival.code})</p>
+                                    <p className="text-xs text-gray-400 mt-1">Terminal 3</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
