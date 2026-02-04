@@ -1,12 +1,12 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import FlightStrip from "@/components/results/FlightStrip";
 import { flights, airlines } from "@/lib/mockData";
 import { Filter, SlidersHorizontal } from "lucide-react";
 
-export default function SearchPage() {
+function SearchContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -204,5 +204,13 @@ export default function SearchPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center font-bold text-gray-400 uppercase tracking-widest animate-pulse">Searching Flights...</div>}>
+            <SearchContent />
+        </Suspense>
     );
 }
